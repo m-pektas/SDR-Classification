@@ -1,7 +1,6 @@
 from sklearn.metrics import accuracy_score
 import numpy as np
 import copy
-from tqdm import tqdm
 
 class SDRClassifier:
     """
@@ -139,7 +138,7 @@ class SDRClassifier:
         cols = list(X_train.columns.values) #get columns
 
         while True:
-            iteration = iteration + 1
+            iteration = iteration + 1 
             X_train.reset_index(drop=True,  inplace=True)
             y_train.reset_index(drop=True,  inplace=True)
 
@@ -161,7 +160,9 @@ class SDRClassifier:
             X_train,  y_train = self.__filter_databyRules(X=X_train,  y=y_train)
 
             if len(X_train)==0: #terminate state2
-                break        
+                break 
+
+         
     
     def __sort(self):
         sort = []
@@ -175,15 +176,15 @@ class SDRClassifier:
                     rl.remove(i)
         return sort
                            
-    def predict(self,  X_test,  y_test):
+    def predict(self,  X_test):
         
         self.rules = self.__sort()
         pred = np.array([])
-        for j in range(len(y_test)):
-            sample = dict(X_test.iloc[j, :])
+        for j in range(len(X_test)):
+            sample = dict(X_test.iloc[j, :])              #get test sample
             ignore = True
             for i in self.rules:                              
-                rslt = i.check(dic=sample)                
+                rslt = i.check(dic=sample)                #if sample match with rule
                 if rslt == "-":                           #rule not matched
                     continue
                 else:
@@ -191,7 +192,7 @@ class SDRClassifier:
                     pred = np.append(pred, rslt)         
                     break
             if ignore:
-                pred = np.append(pred, ["-"])        
+                pred = np.append(pred, ["-1"])        
         return pred
       
     def showRules(self):
@@ -207,11 +208,11 @@ class SDRClassifier:
         
         #p optimizing
         print("P optimizing...")
-        for i in tqdm(p_vals):
+        for i in p_vals:
             i = round(i,3)
             SDR = SDRClassifier(p=i)
             SDR.fit(X_train=X_train,  y_train=y_train)
-            pred = SDR.predict(X_test=X_test,  y_test=y_test)
+            pred = SDR.predict(X_test=X_test)
             acc = accuracy_score(y_test,  pred)
             #print("p :",  i,  " acc :",  acc,  flush = True)
             
@@ -232,7 +233,7 @@ class SDRClassifier:
             msc = min(SamplingSizes)
             rules = [i for i in SDR_ex.rules if i.sc > msc]
             SDR_ex.rules = rules
-            pred = SDR_ex.predict(X_test=X_test, y_test=y_test)
+            pred = SDR_ex.predict(X_test=X_test)
             acc = accuracy_score(y_test, pred)
             
             if acc < best_acc:
